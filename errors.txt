@@ -1,33 +1,50 @@
+  File "/home/tobhel10/Krypteringsprosjekt/Sikker-SlettingTXTfil.py", line 4
+    DATA_DIR = /home/tobhel10/Krypteringsprosjekt/DATA("data")
+               ^
+SyntaxError: invalid syntax
+(Krypterings_Prosjekt) tobhel10@raspberrypi:~ $ 
+
+The problem i get
+
+the code
+
+
 from pathlib import Path
 from cryptography.fernet import Fernet
 
-OUT_DIR = Path("out")
-KEY_FILE = Path("key.key")
+DATA_DIR = /home/tobhel10/Krypteringsprosjekt/DATA("data")
+OUT_DIR = /home/tobhel10/Krypteringsprosjekt/OUT("out")
+KEY_FILE = /home/tobhel10/Krypteringsprosjekt/Key.key(("key.key")
 
-def load_key():
-    # Load the same key used for encryption
-    return KEY_FILE.read_bytes()
+def load_or_create_key():
+    # Load saved key if it exists, otherwise create a new one.
+    if KEY_FILE.exists():
+        return KEY_FILE.read_bytes()
+    key = Fernet.generate_key()
+    KEY_FILE.write_bytes(key)
+    return key
 
-def decrypt_file(encrypted_path: Path, fernet: Fernet):
-    # Read encrypted bytes
-    encrypted = encrypted_path.read_bytes()
+def encrypt_file(input_path: Path, fernet: Fernet):
+    # Read file bytes
+    data = input_path.read_bytes()
 
-    # Decrypt
-    decrypted = fernet.decrypt(encrypted)
+    # Encrypt bytes
+    encrypted = fernet.encrypt(data)
 
-    # Remove .enc extension
-    output_path = encrypted_path.with_suffix("")
-    output_path.write_bytes(decrypted)
+    # Save encrypted file with .enc extension
+    OUT_DIR.mkdir(exist_ok=True)
+    output_path = OUT_DIR / (input_path.name + ".enc")
+    output_path.write_bytes(encrypted)
     return output_path
 
 def main():
-    key = load_key()
+    key = load_or_create_key()
     f = Fernet(key)
 
-    encrypted_file = OUT_DIR / "secret.txt.enc"  # change if needed
-    restored_path = decrypt_file(encrypted_file, f)
+    input_file = DATA_DIR / "secret.txt"  # change if needed
+    output_file = encrypt_file(input_file, f)
 
-    print(f"Decrypted to: {restored_path}")
+    print(f"Encrypted to: {output_file}")
 
 if __name__ == "__main__":
     main()
