@@ -1,0 +1,4 @@
+ File "/home/tobhel10/Krypteringsprosjekt/SikkerSletting-tekst.py", line 47
+    main()
+    ^^^^
+IndentationError: expected an indented block after 'if' statement on line 46
