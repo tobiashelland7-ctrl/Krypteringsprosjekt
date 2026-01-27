@@ -1,20 +1,10 @@
-  File "/home/tobhel10/Krypteringsprosjekt/Sikker-SlettingTXTfil.py", line 4
-    DATA_DIR = /home/tobhel10/Krypteringsprosjekt/DATA("data")
-               ^
-SyntaxError: invalid syntax
-(Krypterings_Prosjekt) tobhel10@raspberrypi:~ $ 
-
-The problem i get
-
-the code
-
-
 from pathlib import Path
 from cryptography.fernet import Fernet
 
-DATA_DIR = /home/tobhel10/Krypteringsprosjekt/DATA("data")
-OUT_DIR = /home/tobhel10/Krypteringsprosjekt/OUT("out")
-KEY_FILE = /home/tobhel10/Krypteringsprosjekt/Key.key(("key.key")
+# Absolute paths on your Raspberry Pi
+DATA_DIR = Path("/home/tobhel10/Krypteringsprosjekt/DATA")
+OUT_DIR  = Path("/home/tobhel10/Krypteringsprosjekt/OUT")
+KEY_FILE = Path("/home/tobhel10/Krypteringsprosjekt/Key.key")
 
 def load_or_create_key():
     # Load saved key if it exists, otherwise create a new one.
@@ -31,8 +21,8 @@ def encrypt_file(input_path: Path, fernet: Fernet):
     # Encrypt bytes
     encrypted = fernet.encrypt(data)
 
-    # Save encrypted file with .enc extension
-    OUT_DIR.mkdir(exist_ok=True)
+    # Ensure output dir exists and save as <name>.enc
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
     output_path = OUT_DIR / (input_path.name + ".enc")
     output_path.write_bytes(encrypted)
     return output_path
@@ -41,9 +31,10 @@ def main():
     key = load_or_create_key()
     f = Fernet(key)
 
-    input_file = DATA_DIR / "secret.txt"  # change if needed
-    output_file = encrypt_file(input_file, f)
+    # Put the file you want to encrypt in: /home/tobhel10/Krypteringsprosjekt/DATA/
+    input_file = DATA_DIR / "secret.txt"   # ← change filename if needed
 
+    output_file = encrypt_file(input_file, f)
     print(f"Encrypted to: {output_file}")
 
 if __name__ == "__main__":
