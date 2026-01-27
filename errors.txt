@@ -1,54 +1,47 @@
-#Kryptering av tekstfiler for sikker sletting
-# Enkel kryptering av tekst med fernet
+# Kryptering av tekstfiler for sikker sletting
+# Enkel kryptering av tekst med Fernet
 
-from cryptography.fernet import fernet
+from cryptography.fernet import Fernet  # Merk: stor F!
 
 def generer_nokkel() -> bytes:
-    """ Lagar ei sterk, tilfeldig nøkkel (Fernet)."""
+    """Lagar ei sterk, tilfeldig nøkkel (Fernet)."""
     return Fernet.generate_key()
-    
+
 def lag_fernet(nokkel: bytes) -> Fernet:
-        """lager eit Fernet-objekt frå nøkkelen."""
-        return Fernet(nokkel)
-        
-def krypter_tekst(fernet: Fernet, klartekst:str) -> bytes:
-             """Krypterer tekst (str) -> bytes."""
-             return
-             fernet.encrypt(klartekst.encode("utf-8"))
-             
-def dekrypter_tekst(fernet: Fernet, kryptert:bytes) -> str:
-                 """Dekrypterer bytes -> tekst (str)."""
-                 return
-                 fernet.decrypt(kryptert).decode("utf-8")
-                 # 1) generer nøkkel (seinare skal i lagre denne fil)
-                 nokkel = generer_nokkel()
-                 print(f"[INFO] Generert nøkkel:{nokkel.decode()}")
-                 
-                 # 2) lag krypteraren
-                 f = lag_fernet(nokkel)
-                 
-                 # 3) teksten vi vil kryptere
-                 klartekst = "i have a hole in my shoes."
-                 print(f"[INFO] Klartekst: {klartekst}")
-                 
-                 # 4) Krypter
-                 kryptert = krypter_tekst(f, klartekst)
-                 print(f"[INFO] Kryptert (bytes): {kryptert}")
-                 
-                 # 5) dekrypter tilbake
-                 dekryptert = dekrypter_tekst(f, kryptert)
-                 print(f"[INFO] Dekryptert: {dekryptert}")
-                 
-                 #6 Sjekk at alt stemmer
-                 assert dekryptert == klartekst, "Dekryptert tekst er ikkje lik orginalen!"
-                 print("[OK] Kryptering/dekryptering fungerer!")
-                 
-                 def main():
-                 if __name___ == "__main__":
-                     main()
-                 
-                 
-                 
-             
-             
-    
+    """Lagar eit Fernet-objekt frå nøkkelen."""
+    return Fernet(nokkel)
+
+def krypter_tekst(fernet: Fernet, klartekst: str) -> bytes:
+    """Krypterer tekst (str) -> bytes."""
+    return fernet.encrypt(klartekst.encode("utf-8"))
+
+def dekrypter_tekst(fernet: Fernet, kryptert: bytes) -> str:
+    """Dekrypterer bytes -> tekst (str)."""
+    return fernet.decrypt(kryptert).decode("utf-8")
+
+def main():
+    # 1) generer nøkkel (seinare skal vi lagre denne til fil)
+    nokkel = generer_nokkel()
+    print(f"[INFO] Generert nøkkel: {nokkel.decode()}")
+
+    # 2) lag krypteraren
+    f = lag_fernet(nokkel)
+
+    # 3) teksten vi vil kryptere
+    klartekst = "i have a hole in my shoes."
+    print(f"[INFO] Klartekst: {klartekst}")
+
+    # 4) Krypter
+    kryptert = krypter_tekst(f, klartekst)
+    print(f"[INFO] Kryptert (bytes): {kryptert}")
+
+    # 5) dekrypter tilbake
+    dekryptert = dekrypter_tekst(f, kryptert)
+    print(f"[INFO] Dekryptert: {dekryptert}")
+
+    # 6) Sjekk at alt stemmer
+    assert dekryptert == klartekst, "Dekryptert tekst er ikkje lik originalen!"
+    print("[OK] Kryptering/dekryptering fungerer!")
+
+if __name__ == "__main__":
+    main()
