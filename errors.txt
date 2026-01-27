@@ -1,47 +1,39 @@
-# Kryptering av tekstfiler for sikker sletting
-# Enkel kryptering av tekst med Fernet
+from pathlib import Path
+from cryptography.fernet import Fernet
 
-from cryptography.fernet import Fernet  # Merk: stor F!
+DATA_DIR = Path("data")
+OUT_DIR = Path("out")
+KEY_FILE = Path("key.key")
 
-def generer_nokkel() -> bytes:
-    """Lagar ei sterk, tilfeldig nøkkel (Fernet)."""
-    return Fernet.generate_key()
+def load_or_create_key():
+    # Load saved key if it exists, otherwise create a new one.
+    if KEY_FILE.exists():
+        return KEY_FILE.read_bytes()
+    key = Fernet.generate_key()
+    KEY_FILE.write_bytes(key)
+    return key
 
-def lag_fernet(nokkel: bytes) -> Fernet:
-    """Lagar eit Fernet-objekt frå nøkkelen."""
-    return Fernet(nokkel)
+def encrypt_file(input_path: Path, fernet: Fernet):
+    # Read file bytes
+    data = input_path.read_bytes()
 
-def krypter_tekst(fernet: Fernet, klartekst: str) -> bytes:
-    """Krypterer tekst (str) -> bytes."""
-    return fernet.encrypt(klartekst.encode("utf-8"))
+    # Encrypt bytes
+    encrypted = fernet.encrypt(data)
 
-def dekrypter_tekst(fernet: Fernet, kryptert: bytes) -> str:
-    """Dekrypterer bytes -> tekst (str)."""
-    return fernet.decrypt(kryptert).decode("utf-8")
+    # Save encrypted file with .enc extension
+    OUT_DIR.mkdir(exist_ok=True)
+    output_path = OUT_DIR / (input_path.name + ".enc")
+    output_path.write_bytes(encrypted)
+    return output_path
 
 def main():
-    # 1) generer nøkkel (seinare skal vi lagre denne til fil)
-    nokkel = generer_nokkel()
-    print(f"[INFO] Generert nøkkel: {nokkel.decode()}")
+    key = load_or_create_key()
+    f = Fernet(key)
 
-    # 2) lag krypteraren
-    f = lag_fernet(nokkel)
+    input_file = DATA_DIR / "secret.txt"  # change if needed
+    output_file = encrypt_file(input_file, f)
 
-    # 3) teksten vi vil kryptere
-    klartekst = "i have a hole in my shoes."
-    print(f"[INFO] Klartekst: {klartekst}")
-
-    # 4) Krypter
-    kryptert = krypter_tekst(f, klartekst)
-    print(f"[INFO] Kryptert (bytes): {kryptert}")
-
-    # 5) dekrypter tilbake
-    dekryptert = dekrypter_tekst(f, kryptert)
-    print(f"[INFO] Dekryptert: {dekryptert}")
-
-    # 6) Sjekk at alt stemmer
-    assert dekryptert == klartekst, "Dekryptert tekst er ikkje lik originalen!"
-    print("[OK] Kryptering/dekryptering fungerer!")
+    print(f"Encrypted to: {output_file}")
 
 if __name__ == "__main__":
     main()
