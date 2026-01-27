@@ -1,41 +1,10 @@
-from pathlib import Path
-from cryptography.fernet import Fernet
-
-# Absolute paths on your Raspberry Pi
-DATA_DIR = Path("/home/tobhel10/Krypteringsprosjekt/DATA")
-OUT_DIR  = Path("/home/tobhel10/Krypteringsprosjekt/OUT")
-KEY_FILE = Path("/home/tobhel10/Krypteringsprosjekt/Key.key")
-
-def load_or_create_key():
-    # Load saved key if it exists, otherwise create a new one.
-    if KEY_FILE.exists():
-        return KEY_FILE.read_bytes()
-    key = Fernet.generate_key()
-    KEY_FILE.write_bytes(key)
-    return key
-
-def encrypt_file(input_path: Path, fernet: Fernet):
-    # Read file bytes
-    data = input_path.read_bytes()
-
-    # Encrypt bytes
-    encrypted = fernet.encrypt(data)
-
-    # Ensure output dir exists and save as <name>.enc
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    output_path = OUT_DIR / (input_path.name + ".enc")
-    output_path.write_bytes(encrypted)
-    return output_path
-
-def main():
-    key = load_or_create_key()
-    f = Fernet(key)
-
-    # Put the file you want to encrypt in: /home/tobhel10/Krypteringsprosjekt/DATA/
-    input_file = DATA_DIR / "secret.txt"   # ← change filename if needed
-
-    output_file = encrypt_file(input_file, f)
-    print(f"Encrypted to: {output_file}")
-
-if __name__ == "__main__":
+  File "/home/tobhel10/Krypteringsprosjekt/Sikker-SlettingTXTfil.py", line 41, in <module>
     main()
+    ~~~~^^
+  File "/home/tobhel10/Krypteringsprosjekt/Sikker-SlettingTXTfil.py", line 32, in main
+    f = Fernet(key)
+  File "/home/tobhel10/Krypteringsprosjekt/Krypterings_Prosjekt/lib/python3.13/site-packages/cryptography/fernet.py", line 41, in __init__
+    raise ValueError(
+        "Fernet key must be 32 url-safe base64-encoded bytes."
+    )
+ValueError: Fernet key must be 32 url-safe base64-encoded bytes.
