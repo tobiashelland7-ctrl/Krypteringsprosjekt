@@ -1,10 +1,39 @@
-  File "/home/tobhel10/Krypteringsprosjekt/Sikker-SlettingTXTfil.py", line 41, in <module>
-    main()
-    ~~~~^^
-  File "/home/tobhel10/Krypteringsprosjekt/Sikker-SlettingTXTfil.py", line 32, in main
+from pathlib import Path
+from cryptography.fernet import Fernet
+
+DATA_DIR = /home/tobhel10/Krypteringsprosjekt/DATA("data")
+OUT_DIR = /home/tobhel10/Krypteringsprosjekt/OUT("out")
+KEY_FILE = /home/tobhel10/Krypteringsprosjekt/Key.key("key.key")
+
+def load_or_create_key():
+    # Load saved key if it exists, otherwise create a new one.
+    if KEY_FILE.exists():
+        return KEY_FILE.read_bytes()
+    key = Fernet.generate_key()
+    KEY_FILE.write_bytes(key)
+    return key
+
+def encrypt_file(input_path: Path, fernet: Fernet):
+    # Read file bytes
+    data = input_path.read_bytes()
+
+    # Encrypt bytes
+    encrypted = fernet.encrypt(data)
+
+    # Save encrypted file with .enc extension
+    OUT_DIR.mkdir(exist_ok=True)
+    output_path = OUT_DIR / (input_path.name + ".enc")
+    output_path.write_bytes(encrypted)
+    return output_path
+
+def main():
+    key = load_or_create_key()
     f = Fernet(key)
-  File "/home/tobhel10/Krypteringsprosjekt/Krypterings_Prosjekt/lib/python3.13/site-packages/cryptography/fernet.py", line 41, in __init__
-    raise ValueError(
-        "Fernet key must be 32 url-safe base64-encoded bytes."
-    )
-ValueError: Fernet key must be 32 url-safe base64-encoded bytes.
+
+    input_file = DATA_DIR / "i have a hole in my shoes.txt"  # change if needed
+    output_file = encrypt_file(input_file, f)
+
+    print(f"Encrypted to: {output_file}")
+
+if __name__ == "__main__":
+    main()
