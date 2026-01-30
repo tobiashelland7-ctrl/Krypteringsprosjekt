@@ -1,46 +1,45 @@
 from pathlib import Path
 from cryptography.fernet import Fernet
 
-# Same paths as encrypt script
+DATA_DIR = Path("/home/tobhel10/Krypteringsprosjekt/DATA")
 OUT_DIR  = Path("/home/tobhel10/Krypteringsprosjekt/OUT")
 KEY_FILE = Path("/home/tobhel10/Krypteringsprosjekt/Key.key")
 
+def load_or_create_key():
+    if KEY_FILE.exists():
+        return KEY_FILE.read_bytes()
+    key = Fernet.generate_key()
+    KEY_FILE.write_bytes(key)
+    return key
+
+def encrypt_file(input_path: Path, fernet: Fernet):
+    # 1. Read the original file as bytes
+    data = input_path.read_bytes()
+
+    # 2. Encrypt the bytes
+    encrypted = fernet.encrypt(data)
+
+    # 3. Ensure output directory exists
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    # 4. Save encrypted file
+    output_path = OUT_DIR / (input_path.name + ".enc")
+    output_path.write_bytes(encrypted)
+
+    # 5. DELETE ORIGINAL FILE
+    input_path.unlink()  # ← This removes the original file
+
+    return output_path
+
 def main():
-    # Ask user for the key (copy it from Key.key when testing)
-    user_key_input = input("Enter your decryption key: ").strip()
+    key = load_or_create_key()
+    f = Fernet(key)
 
-    # Convert user input to bytes
-    try:
-        user_key = user_key_input.encode()
-        f = Fernet(user_key)   # validate key format
-    except Exception:
-        print("❌ Invalid key format. Decryption refused.")
-        return
+    # Put your GIF in DATA/ with this exact name:
+    input_file = DATA_DIR / "charlie-kirk-tony-stark.gif"
 
-    # Ask for encrypted filename (must be inside OUT folder)
-    encrypted_name = input("Enter encrypted filename (example: secret.txt.enc): ").strip()
-    encrypted_path = OUT_DIR / encrypted_name
-
-    if not encrypted_path.exists():
-        print(f"❌ File not found: {encrypted_path}")
-        return
-
-    # Read encrypted bytes
-    encrypted_bytes = encrypted_path.read_bytes()
-
-    try:
-        decrypted_bytes = f.decrypt(encrypted_bytes)
-    except Exception:
-        print("❌ Wrong key. Cannot decrypt.")
-        return
-
-    # Remove .enc extension to get original name
-    output_path = OUT_DIR / encrypted_name.replace(".enc", "")
-
-    output_path.write_bytes(decrypted_bytes)
-
-    print(f"✅ Decrypted successfully!")
-    print(f"Output saved to: {output_path}")
+    output_file = encrypt_file(input_file, f)
+    print(f"Encrypted to: {output_file} (original deleted)")
 
 if __name__ == "__main__":
     main()
