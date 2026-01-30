@@ -1,45 +1,45 @@
 from pathlib import Path
 from cryptography.fernet import Fernet
 
-DATA_DIR = Path("/home/tobhel10/Krypteringsprosjekt/DATA")
 OUT_DIR  = Path("/home/tobhel10/Krypteringsprosjekt/OUT")
-KEY_FILE = Path("/home/tobhel10/Krypteringsprosjekt/Key.key")
-
-def load_or_create_key():
-    if KEY_FILE.exists():
-        return KEY_FILE.read_bytes()
-    key = Fernet.generate_key()
-    KEY_FILE.write_bytes(key)
-    return key
-
-def encrypt_file(input_path: Path, fernet: Fernet):
-    # 1. Read the original file as bytes
-    data = input_path.read_bytes()
-
-    # 2. Encrypt the bytes
-    encrypted = fernet.encrypt(data)
-
-    # 3. Ensure output directory exists
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    # 4. Save encrypted file
-    output_path = OUT_DIR / (input_path.name + ".enc")
-    output_path.write_bytes(encrypted)
-
-    # 5. DELETE ORIGINAL FILE
-    input_path.unlink()  # ← This removes the original file
-
-    return output_path
 
 def main():
-    key = load_or_create_key()
-    f = Fernet(key)
+    # Ask user for the key
+    user_key_input = input("Enter your decryption key: ").strip()
 
-    # Put your GIF in DATA/ with this exact name:
-    input_file = DATA_DIR / "charlie-kirk-tony-stark.gif"
+    try:
+        f = Fernet(user_key_input.encode())
+    except Exception:
+        print("❌ Invalid key format.")
+        return
 
-    output_file = encrypt_file(input_file, f)
-    print(f"Encrypted to: {output_file} (original deleted)")
+    # Ask which encrypted file to decrypt
+    encrypted_name = input("Enter encrypted filename (example: charlie-kirk-tony-stark.gif.enc): ").strip()
+    encrypted_path = OUT_DIR / encrypted_name
+
+    if not encrypted_path.exists():
+        print("❌ File not found:", encrypted_path)
+        return
+
+    # Try decrypting
+    try:
+        encrypted_bytes = encrypted_path.read_bytes()
+        decrypted_bytes = f.decrypt(encrypted_bytes)
+    except Exception:
+        print("❌ Wrong key. Cannot decrypt.")
+        return
+
+    # Remove .enc extension → restore original GIF name
+    output_path = OUT_DIR / encrypted_name.replace(".enc", "")
+
+    # Write the decrypted GIF bytes
+    output_path.write_bytes(decrypted_bytes)
+
+    print(f"✅ Decrypted: {output_path}")
+
+    # Delete encrypted file
+    encrypted_path.unlink()
+    print(f"🗑 Deleted encrypted file: {encrypted_path}")
 
 if __name__ == "__main__":
     main()
